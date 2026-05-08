@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background : #F5F7FB;
+  color      : #1A2340;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: #F5F7FB; }
+::-webkit-scrollbar-thumb  { background: #DDE3EE; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6B7A99; }
+
+/* Focus ring */
+:focus-visible { outline: 2px solid #1565C0; outline-offset: 2px; }
