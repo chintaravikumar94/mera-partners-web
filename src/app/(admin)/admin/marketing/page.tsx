@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState, FormEvent } from 'react'
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, orderBy, query } from 'firebase/firestore'
+import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, orderBy, query, Timestamp } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from '@/lib/firebase'
-import { formatDistanceToNow, Timestamp } from 'date-fns'
 
 interface Material { id: string; title: string; description: string; fileUrl: string; type: string; createdAt?: Date }
 
