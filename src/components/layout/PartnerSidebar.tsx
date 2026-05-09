@@ -21,6 +21,7 @@ const NAV = [
   { href: '/marketing',      label: 'Marketing',      icon: MarketingIcon },
   { href: '/training',       label: 'Training',       icon: TrainingIcon },
   { href: '/support',        label: 'Support',        icon: SupportIcon },
+  { href: '/more',           label: 'More',           icon: MoreIcon },
   { href: '/notifications',  label: 'Notifications',  icon: BellIcon },
   { href: '/profile',        label: 'Profile',        icon: ProfileIcon },
 ]
@@ -208,4 +209,7 @@ function SupportIcon({ className }: { className?: string }) {
 }
 function PaymentIcon({ className }: { className?: string }) {
   return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+}
+function MoreIcon({ className }: { className?: string }) {
+  return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
 }
