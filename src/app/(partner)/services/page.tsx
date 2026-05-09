@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import Link from 'next/link'
 
@@ -30,8 +30,12 @@ export default function ServicesPage() {
   const [filter, setFilter]     = useState<string>('all')
 
   useEffect(() => {
-    getDocs(query(collection(db, 'services'), where('is_active', '==', true), orderBy('name')))
-      .then(snap => setServices(snap.docs.map(d => ({ id: d.id, ...d.data() } as Service))))
+    getDocs(query(collection(db, 'services'), where('is_active', '==', true)))
+      .then(snap => {
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Service))
+        list.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+        setServices(list)
+      })
       .finally(() => setLoading(false))
   }, [])
 
