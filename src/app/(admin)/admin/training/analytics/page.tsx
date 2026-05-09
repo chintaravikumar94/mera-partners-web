@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { collection, getDocs, query, orderBy } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import Link from 'next/link'
-import { format } from 'date-fns'
 
 interface TrainingVideo { id: string; title: string; points: number }
 interface UserProgress {

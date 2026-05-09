@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp, getDocs, collection, query, where, updateDoc } from 'firebase/firestore'
+import { doc, setDoc, serverTimestamp, getDocs, collection, query, where } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import Link from 'next/link'
 
