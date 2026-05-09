@@ -17,47 +17,60 @@ export default function HomePage() {
   const [infoStrip,      setInfoStrip]      = useState<InfoStrip | null>(null)
   const [loading,        setLoading]        = useState(true)
 
+  // Load info strip once (global config, not user-specific)
+  useEffect(() => {
+    getDoc(doc(db, 'config', 'info_strip')).then(snap => {
+      if (snap.exists()) {
+        const d = snap.data()
+        if (d.isActive && d.text) {
+          setInfoStrip(d as InfoStrip)
+        }
+      }
+    }).catch(() => {/* ignore */})
+  }, [])
+
   useEffect(() => {
     if (!profile?.uid) return
     setLoading(true)
 
     // SKU balances from users doc
-    const unsub = onSnapshot(doc(db, 'users', profile.uid), (snap) => {
-      const data = snap.data() ?? {}
-      const skuUnits = data.skuUnits as Record<string, any> ?? {}
-      const balances: SkuBalance[] = Object.entries(skuUnits).map(([service, val]) => ({
-        service,
-        units     : typeof val === 'number' ? val : (val?.units ?? 0),
-        expiryDate: val?.expiryDate ? (val.expiryDate as Timestamp).toDate() : undefined,
-      }))
-      setSkuBalances(balances)
-    })
+    const unsub = onSnapshot(
+      doc(db, 'users', profile.uid),
+      (snap) => {
+        const data = snap.data() ?? {}
+        const skuUnits = (data.skuUnits as Record<string, any>) ?? {}
+        const balances: SkuBalance[] = Object.entries(skuUnits).map(([service, val]) => ({
+          service,
+          units     : typeof val === 'number' ? val : (val?.units ?? 0),
+          expiryDate: val?.expiryDate ? (val.expiryDate as Timestamp).toDate() : undefined,
+        }))
+        setSkuBalances(balances)
+      },
+      () => {/* ignore errors */}
+    )
 
     // Recent notifications
     const q = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(5))
-    const unsub2 = onSnapshot(q, (snap) => {
-      setNotifications(snap.docs
-        .filter(d => {
-          const tt = d.data().targetType
-          return tt === 'all' || d.data().targetUid === profile.uid
-        })
-        .map(d => ({
-          id       : d.id,
-          title    : d.data().title ?? '',
-          body     : d.data().body  ?? '',
-          type     : d.data().type  ?? 'general',
-          createdAt: (d.data().createdAt as Timestamp)?.toDate(),
-        }))
-      )
-      setLoading(false)
-    })
-
-    // Info strip
-    getDoc(doc(db, 'config', 'info_strip')).then(snap => {
-      if (snap.exists() && snap.data().isActive) {
-        setInfoStrip(snap.data() as InfoStrip)
-      }
-    })
+    const unsub2 = onSnapshot(
+      q,
+      (snap) => {
+        setNotifications(snap.docs
+          .filter(d => {
+            const tt = d.data().targetType
+            return tt === 'all' || d.data().targetUid === profile.uid
+          })
+          .map(d => ({
+            id       : d.id,
+            title    : d.data().title ?? '',
+            body     : d.data().body  ?? '',
+            type     : d.data().type  ?? 'general',
+            createdAt: (d.data().createdAt as Timestamp)?.toDate(),
+          }))
+        )
+        setLoading(false)
+      },
+      () => setLoading(false)   // also stop loading on error
+    )
 
     return () => { unsub(); unsub2() }
   }, [profile?.uid])
