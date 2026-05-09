@@ -7,7 +7,9 @@ import Link from 'next/link'
 
 interface Service {
   id: string; name: string; category: string; service_type: string
-  image_url: string; description: string; is_active: boolean
+  image_url: string; images: string[]
+  short_description: string; full_description: string
+  is_active: boolean
   retail_price: number; wholesale_price: number
   sku_pricing: Record<string, number>; sku_units: Record<string, number>
   commission_value: number; commission_type: string; commission_per_unit: number
@@ -15,9 +17,10 @@ interface Service {
 }
 
 const TYPE_BADGE: Record<string, { label: string; cls: string }> = {
-  sku:        { label: 'SKU',        cls: 'bg-brand-surf text-brand-blue border-brand-blue/20' },
-  commission: { label: 'Commission', cls: 'bg-green-50 text-green-700 border-green-200' },
-  per_unit:   { label: 'Per Unit',   cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+  sku:         { label: 'SKU',         cls: 'bg-brand-surf text-brand-blue border-brand-blue/20' },
+  commission:  { label: 'Commission',  cls: 'bg-green-50 text-green-700 border-green-200' },
+  per_unit:    { label: 'Per Unit',    cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+  per_project: { label: 'Per Project', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
 }
 
 export default function ServicesPage() {
@@ -76,24 +79,26 @@ export default function ServicesPage() {
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
           {filtered.map(s => {
-            const badge = TYPE_BADGE[s.service_type] ?? TYPE_BADGE.commission
-            const profit = s.retail_price && s.wholesale_price ? s.retail_price - s.wholesale_price : null
-            const skuPlans = Object.keys(s.sku_pricing ?? {}).length
+            const badge    = TYPE_BADGE[s.service_type] ?? TYPE_BADGE.commission
+            const thumbUrl = s.images?.[0] || s.image_url || ''
+            const profit   = s.retail_price && s.wholesale_price ? s.retail_price - s.wholesale_price : null
+            const skuPlans = Object.keys(s.sku_pricing ?? {}).filter(k => (s.sku_pricing[k] ?? 0) > 0).length
+            const desc     = s.short_description || s.full_description || ''
 
             return (
               <Link key={s.id} href={`/services/${s.id}`}
                 className="bg-white rounded-2xl border border-brand-border shadow-card hover:shadow-md transition-all overflow-hidden block group">
 
                 {/* Image */}
-                {s.image_url ? (
+                {thumbUrl ? (
                   <div className="w-full h-36 overflow-hidden bg-brand-bg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.image_url} alt={s.name}
+                    <img src={thumbUrl} alt={s.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                   </div>
                 ) : (
                   <div className="w-full h-24 bg-gradient-to-br from-brand-surf to-white flex items-center justify-center">
-                    <span className="text-4xl font-bold text-brand-blue opacity-30">{s.name[0]}</span>
+                    <span className="text-4xl font-bold text-brand-blue opacity-30">{s.name?.[0]}</span>
                   </div>
                 )}
 
@@ -106,6 +111,7 @@ export default function ServicesPage() {
                   </div>
 
                   {s.category && <p className="text-brand-sub text-xs">{s.category}</p>}
+                  {desc && <p className="text-brand-sub text-xs line-clamp-2">{desc}</p>}
 
                   {/* Earnings preview */}
                   {profit !== null && profit > 0 && (
@@ -115,10 +121,15 @@ export default function ServicesPage() {
                     </div>
                   )}
                   {skuPlans > 0 && (
-                    <p className="text-brand-blue text-xs font-semibold">{skuPlans} SKU plans available</p>
+                    <p className="text-brand-blue text-xs font-semibold">{skuPlans} SKU plan{skuPlans > 1 ? 's' : ''} available</p>
                   )}
-                  {s.service_type === 'per_unit' && s.commission_per_unit > 0 && (
+                  {(s.service_type === 'per_unit' || s.service_type === 'per_project') && s.commission_per_unit > 0 && (
                     <p className="text-green-600 text-xs font-semibold">₹{s.commission_per_unit} per {s.unit_label || 'unit'}</p>
+                  )}
+                  {s.service_type === 'commission' && s.commission_value > 0 && (
+                    <p className="text-green-600 text-xs font-semibold">
+                      {s.commission_type === 'percent' ? `${s.commission_value}% commission` : `₹${s.commission_value} flat`}
+                    </p>
                   )}
 
                   <div className="flex items-center justify-between pt-1">
