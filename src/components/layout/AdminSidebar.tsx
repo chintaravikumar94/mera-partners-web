@@ -17,6 +17,7 @@ const NAV = [
   { href: '/admin/marketing',         label: 'Marketing',          icon: MarketingIcon },
   { href: '/admin/training',          label: 'Training',           icon: TrainingIcon },
   { href: '/admin/training/analytics', label: 'Training Analytics', icon: AnalyticsIcon },
+  { href: '/admin/training/leaderboard', label: 'Leaderboard', icon: LeaderboardIcon },
   { href: '/admin/info-strip',        label: 'Info Strip',         icon: InfoIcon },
   { href: '/admin/notifications',     label: 'Notifications',      icon: BellIcon },
 ]
@@ -150,6 +151,9 @@ function TrainingIcon({ className }: { className?: string }) {
 }
 function InfoIcon({ className }: { className?: string }) {
   return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+}
+function LeaderboardIcon({ className }: { className?: string }) {
+  return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
 }
 function AnalyticsIcon({ className }: { className?: string }) {
   return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>

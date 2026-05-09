@@ -19,7 +19,7 @@ export default function AdminMarketingPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
-    const q = query(collection(db, 'marketing'), orderBy('createdAt', 'desc'))
+    const q = query(collection(db, 'marketing_materials'), orderBy('createdAt', 'desc'))
     const unsub = onSnapshot(q, snap => {
       setItems(snap.docs.map(d => ({
         id: d.id, title: d.data().title ?? '', description: d.data().description ?? '',
@@ -38,11 +38,11 @@ export default function AdminMarketingPage() {
     try {
       let fileUrl = ''
       if (file) {
-        const r = ref(storage, `marketing/${Date.now()}_${file.name}`)
+        const r = ref(storage, `marketing_materials/${Date.now()}_${file.name}`)
         await uploadBytes(r, file)
         fileUrl = await getDownloadURL(r)
       }
-      await addDoc(collection(db, 'marketing'), { title, description, type, fileUrl, createdAt: serverTimestamp() })
+      await addDoc(collection(db, 'marketing_materials'), { title, description, type, fileUrl, createdAt: serverTimestamp() })
       setTitle(''); setDescription(''); setFile(null); setShowForm(false)
     } finally { setSaving(false) }
   }
@@ -122,7 +122,7 @@ export default function AdminMarketingPage() {
                     <a href={item.fileUrl} target="_blank" rel="noreferrer"
                       className="text-brand-blue text-xs font-semibold hover:underline shrink-0">View</a>
                   )}
-                  <button onClick={async () => { setDeleting(item.id); await deleteDoc(doc(db, 'marketing', item.id)); setDeleting(null) }}
+                  <button onClick={async () => { setDeleting(item.id); await deleteDoc(doc(db, 'marketing_materials', item.id)); setDeleting(null) }}
                     disabled={deleting === item.id}
                     className="p-2 rounded-xl text-brand-sub hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
                     <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>

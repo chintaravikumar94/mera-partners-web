@@ -21,7 +21,7 @@ export default function MarketingPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const q = query(collection(db, 'marketing'), orderBy('createdAt', 'desc'))
+    const q = query(collection(db, 'marketing_materials'), orderBy('createdAt', 'desc'))
     const unsub = onSnapshot(q, snap => {
       setItems(snap.docs.map(d => ({
         id: d.id,

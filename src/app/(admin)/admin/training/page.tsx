@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useState, FormEvent } from 'react'
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore'
+import {
+  collection, onSnapshot, addDoc, deleteDoc, doc,
+  serverTimestamp, query, orderBy, Timestamp,
+} from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import Link from 'next/link'
 
-interface Training { id: string; title: string; description: string; youtubeUrl: string; order: number; points: number }
+interface Training { id: string; title: string; description: string; videoUrl: string; createdAt?: Date }
 
 function getYoutubeId(url: string) {
   try {
@@ -15,24 +18,29 @@ function getYoutubeId(url: string) {
   } catch { return '' }
 }
 
+function isYoutubeUrl(url: string) {
+  return url.includes('youtube.com') || url.includes('youtu.be')
+}
+
 export default function AdminTrainingPage() {
   const [items, setItems] = useState<Training[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [points, setPoints] = useState('10')
+  const [videoUrl, setVideoUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
-    const q = query(collection(db, 'training'), orderBy('order', 'asc'))
+    const q = query(collection(db, 'training_materials'), orderBy('createdAt', 'desc'))
     const unsub = onSnapshot(q, snap => {
       setItems(snap.docs.map(d => ({
-        id: d.id, title: d.data().title ?? '', description: d.data().description ?? '',
-        youtubeUrl: d.data().youtubeUrl ?? '', order: d.data().order ?? 0,
-        points: d.data().points ?? 10,
+        id: d.id,
+        title: d.data().title ?? '',
+        description: d.data().description ?? '',
+        videoUrl: d.data().videoUrl ?? '',
+        createdAt: (d.data().createdAt as Timestamp)?.toDate?.(),
       })))
       setLoading(false)
     }, () => setLoading(false))
@@ -41,14 +49,13 @@ export default function AdminTrainingPage() {
 
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault()
-    if (!title.trim() || !youtubeUrl.trim()) return
+    if (!title.trim() || !videoUrl.trim()) return
     setSaving(true)
     try {
-      await addDoc(collection(db, 'training'), {
-        title, description, youtubeUrl, points: Number(points),
-        order: items.length, createdAt: serverTimestamp(),
+      await addDoc(collection(db, 'training_materials'), {
+        title, description, videoUrl, createdAt: serverTimestamp(),
       })
-      setTitle(''); setDescription(''); setYoutubeUrl(''); setPoints('10'); setShowForm(false)
+      setTitle(''); setDescription(''); setVideoUrl(''); setShowForm(false)
     } finally { setSaving(false) }
   }
 
@@ -75,28 +82,23 @@ export default function AdminTrainingPage() {
       {showForm && (
         <form onSubmit={handleAdd} className="bg-white rounded-2xl p-5 border border-brand-border shadow-card space-y-4">
           <p className="text-brand-blue text-xs font-bold uppercase tracking-wide">New Training Video</p>
-          {[
-            { label: 'Title *', value: title, set: setTitle, placeholder: 'e.g. How to Add a Customer' },
-            { label: 'YouTube URL *', value: youtubeUrl, set: setYoutubeUrl, placeholder: 'https://youtube.com/watch?v=...' },
-          ].map(f => (
-            <div key={f.label}>
-              <label className="text-brand-sub text-xs font-semibold uppercase tracking-wide block mb-1">{f.label}</label>
-              <input value={f.value} onChange={e => f.set(e.target.value)} placeholder={f.placeholder} required={f.label.includes('*')}
-                className="w-full px-4 py-2.5 rounded-xl border border-brand-border text-sm outline-none focus:border-brand-blue bg-brand-bg text-brand-text" />
-            </div>
-          ))}
+          <div>
+            <label className="text-brand-sub text-xs font-semibold uppercase tracking-wide block mb-1">Title *</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} required placeholder="e.g. How to Add a Customer"
+              className="w-full px-4 py-2.5 rounded-xl border border-brand-border text-sm outline-none focus:border-brand-blue bg-brand-bg text-brand-text" />
+          </div>
+          <div>
+            <label className="text-brand-sub text-xs font-semibold uppercase tracking-wide block mb-1">Video URL * <span className="normal-case font-normal">(YouTube or direct video link)</span></label>
+            <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} required placeholder="https://youtube.com/watch?v=... or https://..."
+              className="w-full px-4 py-2.5 rounded-xl border border-brand-border text-sm outline-none focus:border-brand-blue bg-brand-bg text-brand-text" />
+          </div>
           <div>
             <label className="text-brand-sub text-xs font-semibold uppercase tracking-wide block mb-1">Description</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
               className="w-full px-4 py-2.5 rounded-xl border border-brand-border text-sm text-brand-text outline-none focus:border-brand-blue bg-brand-bg resize-none" />
           </div>
-          <div>
-            <label className="text-brand-sub text-xs font-semibold uppercase tracking-wide block mb-1">Points Awarded</label>
-            <input type="number" value={points} onChange={e => setPoints(e.target.value)} min="1"
-              className="w-32 px-4 py-2.5 rounded-xl border border-brand-border text-sm outline-none focus:border-brand-blue bg-brand-bg text-brand-text" />
-          </div>
-          {youtubeUrl && getYoutubeId(youtubeUrl) && (
-            <img src={`https://img.youtube.com/vi/${getYoutubeId(youtubeUrl)}/mqdefault.jpg`}
+          {isYoutubeUrl(videoUrl) && getYoutubeId(videoUrl) && (
+            <img src={`https://img.youtube.com/vi/${getYoutubeId(videoUrl)}/mqdefault.jpg`}
               alt="thumbnail" className="w-full rounded-xl object-cover h-32" />
           )}
           <div className="flex gap-2">
@@ -117,33 +119,39 @@ export default function AdminTrainingPage() {
         : items.length === 0
           ? <div className="bg-white rounded-2xl p-10 border border-brand-border text-center text-brand-sub">No training videos yet.</div>
           : <div className="space-y-3">
-              {items.map((item, i) => {
-                const thumb = getYoutubeId(item.youtubeUrl) ? `https://img.youtube.com/vi/${getYoutubeId(item.youtubeUrl)}/mqdefault.jpg` : ''
+              {items.map(item => {
+                const thumb = isYoutubeUrl(item.videoUrl) && getYoutubeId(item.videoUrl)
+                  ? `https://img.youtube.com/vi/${getYoutubeId(item.videoUrl)}/mqdefault.jpg`
+                  : ''
                 return (
                   <div key={item.id} className="bg-white rounded-2xl border border-brand-border overflow-hidden flex gap-3 shadow-card">
-                    {thumb && <img src={thumb} alt={item.title} className="w-28 h-18 object-cover shrink-0" />}
-                    <div className="flex-1 min-w-0 py-3 pr-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-brand-text text-sm">{item.title}</p>
-                          {item.description && <p className="text-brand-sub text-xs mt-0.5 line-clamp-1">{item.description}</p>}
-                        </div>
-                        <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-surf text-brand-blue">+{item.points} pts</span>
-                      </div>
+                    <div className="w-28 shrink-0 bg-brand-surf flex items-center justify-center">
+                      {thumb
+                        ? <img src={thumb} alt={item.title} className="w-full h-full object-cover" style={{ minHeight: 72 }} />
+                        : <svg width="24" height="24" fill="#1565C0" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      }
                     </div>
-                    <div className="flex flex-col items-center justify-center gap-1 pr-3">
-                      <button disabled={i === 0} onClick={() => { const prev = items[i-1]; updateDoc(doc(db, 'training', item.id), { order: prev.order }); updateDoc(doc(db, 'training', prev.id), { order: item.order }) }}
-                        className="p-1 rounded-lg text-brand-sub hover:text-brand-blue disabled:opacity-30">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-                      </button>
-                      <button disabled={i === items.length - 1} onClick={() => { const next = items[i+1]; updateDoc(doc(db, 'training', item.id), { order: next.order }); updateDoc(doc(db, 'training', next.id), { order: item.order }) }}
-                        className="p-1 rounded-lg text-brand-sub hover:text-brand-blue disabled:opacity-30">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-                      </button>
-                      <button onClick={async () => { if (!confirm('Delete?')) return; setDeleting(item.id); await deleteDoc(doc(db, 'training', item.id)); setDeleting(null) }}
+                    <div className="flex-1 min-w-0 py-3">
+                      <p className="font-semibold text-brand-text text-sm">{item.title}</p>
+                      {item.description && <p className="text-brand-sub text-xs mt-0.5 line-clamp-1">{item.description}</p>}
+                      {item.videoUrl && (
+                        <a href={item.videoUrl} target="_blank" rel="noreferrer"
+                          className="text-brand-blue text-xs hover:underline mt-1 inline-block line-clamp-1 max-w-xs">
+                          {item.videoUrl}
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex items-center pr-3 gap-1">
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Delete this video?')) return
+                          setDeleting(item.id)
+                          await deleteDoc(doc(db, 'training_materials', item.id))
+                          setDeleting(null)
+                        }}
                         disabled={deleting === item.id}
-                        className="p-1 rounded-lg text-brand-sub hover:text-red-500 disabled:opacity-50">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                        className="p-2 rounded-xl text-brand-sub hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                       </button>
                     </div>
                   </div>
