@@ -16,6 +16,7 @@ const NAV = [
   { href: '/add-customer',   label: 'Add Customer',   icon: AddCustomerIcon },
   { href: '/sales',          label: 'My Sales',       icon: SalesIcon },
   { href: '/earnings',       label: 'Earnings',       icon: EarningsIcon },
+  { href: '/payments',        label: 'Payments',        icon: PaymentIcon },
   { href: '/referral',       label: 'Referral',       icon: ReferralIcon },
   { href: '/marketing',      label: 'Marketing',      icon: MarketingIcon },
   { href: '/training',       label: 'Training',       icon: TrainingIcon },
@@ -204,4 +205,7 @@ function TrainingIcon({ className }: { className?: string }) {
 }
 function SupportIcon({ className }: { className?: string }) {
   return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+}
+function PaymentIcon({ className }: { className?: string }) {
+  return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
 }

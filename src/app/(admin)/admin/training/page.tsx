@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import Link from 'next/link'
 
 interface Training { id: string; title: string; description: string; youtubeUrl: string; order: number; points: number }
 
@@ -58,11 +59,17 @@ export default function AdminTrainingPage() {
           <h1 className="text-xl font-bold text-brand-text">Training Videos</h1>
           <p className="text-brand-sub text-sm">{items.length} videos</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blueDark transition-colors">
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Video
-        </button>
+        <div className="flex gap-2">
+          <Link href="/admin/training/leaderboard"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-border text-brand-blue text-sm font-semibold hover:bg-brand-surf transition-colors">
+            🏆 Leaderboard
+          </Link>
+          <button onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blueDark transition-colors">
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Video
+          </button>
+        </div>
       </div>
 
       {showForm && (

@@ -1,18 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { collection, query, where, getDocs, orderBy, limit, onSnapshot, doc, Timestamp } from 'firebase/firestore'
+import { collection, query, orderBy, limit, onSnapshot, doc, getDoc, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/contexts/AuthContext'
 import { format } from 'date-fns'
 
 interface SkuBalance { service: string; units: number; expiryDate?: Date }
 interface Notification { id: string; title: string; body: string; type: string; createdAt?: Date }
+interface InfoStrip { text: string; isActive: boolean; bgColor: string; textColor: string }
 
 export default function HomePage() {
   const { profile } = useAuth()
   const [skuBalances,    setSkuBalances]    = useState<SkuBalance[]>([])
   const [notifications,  setNotifications]  = useState<Notification[]>([])
+  const [infoStrip,      setInfoStrip]      = useState<InfoStrip | null>(null)
   const [loading,        setLoading]        = useState(true)
 
   useEffect(() => {
@@ -50,6 +52,13 @@ export default function HomePage() {
       setLoading(false)
     })
 
+    // Info strip
+    getDoc(doc(db, 'config', 'info_strip')).then(snap => {
+      if (snap.exists() && snap.data().isActive) {
+        setInfoStrip(snap.data() as InfoStrip)
+      }
+    })
+
     return () => { unsub(); unsub2() }
   }, [profile?.uid])
 
@@ -62,6 +71,14 @@ export default function HomePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Info Strip */}
+      {infoStrip && (
+        <div className="rounded-xl px-4 py-2.5 text-center text-sm font-medium"
+          style={{ backgroundColor: infoStrip.bgColor, color: infoStrip.textColor }}>
+          📢 {infoStrip.text}
+        </div>
+      )}
+
       {/* Welcome */}
       <div className="rounded-2xl p-6 text-white"
         style={{ background: 'linear-gradient(135deg, #1565C0, #0D47A1)' }}>

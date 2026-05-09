@@ -16,6 +16,7 @@ const NAV = [
   { href: '/admin/payment-settings',  label: 'Payment Settings',   icon: PaymentIcon },
   { href: '/admin/marketing',         label: 'Marketing',          icon: MarketingIcon },
   { href: '/admin/training',          label: 'Training',           icon: TrainingIcon },
+  { href: '/admin/info-strip',        label: 'Info Strip',         icon: InfoIcon },
   { href: '/admin/notifications',     label: 'Notifications',      icon: BellIcon },
 ]
 
@@ -145,4 +146,7 @@ function MarketingIcon({ className }: { className?: string }) {
 }
 function TrainingIcon({ className }: { className?: string }) {
   return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="m22 10-9.197 4.995a2 2 0 0 1-1.606 0L2 10"/><path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5"/><path d="M2 10V7.5L12 2l10 5.5V10"/></svg>
+}
+function InfoIcon({ className }: { className?: string }) {
+  return <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
 }
