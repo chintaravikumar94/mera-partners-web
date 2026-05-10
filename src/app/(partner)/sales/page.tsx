@@ -34,64 +34,179 @@ function generateReceiptHtml(
   partnerName: string,
   partnerMobile: string,
 ): string {
-  const receiptId   = s.receiptNo || s.id.slice(0, 8).toUpperCase()
-  const dateStr     = s.createdAt ? format(s.createdAt, 'd MMM yyyy, hh:mm a') : '—'
-  const statusHex   = s.status === 'approved' ? '#16A34A'
-                    : s.status === 'rejected'  ? '#DC2626'
-                    : s.status === 'processing'? '#2563EB'
-                    : '#D97706'
+  const receiptId = s.receiptNo || s.id.slice(0, 8).toUpperCase()
+  const dateStr   = s.createdAt ? format(s.createdAt, 'dd MMM yyyy, hh:mm a') : '—'
+  const priceStr  = '₹' + s.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+  const isPaid    = s.status === 'approved'
+  const statusLbl = s.status === 'approved' ? 'PAID'
+                  : s.status === 'rejected'  ? 'REJECTED'
+                  : s.status === 'processing'? 'PROCESSING'
+                  : 'PENDING'
+  const statusBg  = isPaid ? '#E8F5E9' : '#FFF3E0'
+  const statusClr = isPaid ? '#2E7D32' : '#EF6C00'
+
+  const qrData    = encodeURIComponent(`RECEIPT|${receiptId}|${s.name}|${s.mobile}|${s.service}|INR${s.price}|${dateStr}`)
+  const qrUrl     = `https://api.qrserver.com/v1/create-qr-code/?size=88x88&data=${qrData}`
 
   return `<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Receipt - ${receiptId}</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f7fb;padding:40px}
-    .receipt{max-width:480px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10)}
-    .hdr{background:linear-gradient(135deg,#1565C0,#0D47A1);padding:28px 24px;text-align:center}
-    .hdr h1{color:#fff;font-size:22px;font-weight:700}
-    .hdr p{color:rgba(255,255,255,.7);font-size:13px;margin-top:4px}
-    .rid{background:rgba(255,255,255,.15);border-radius:8px;padding:8px 16px;display:inline-block;margin-top:12px}
-    .rid span{color:#fff;font-size:14px;font-weight:700;letter-spacing:2px}
-    .body{padding:24px}
-    .row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f1f5f9}
-    .row:last-child{border-bottom:none}
-    .lbl{color:#6B7A99;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-    .val{color:#1A2340;font-size:14px;font-weight:600;text-align:right;max-width:60%}
-    .price{font-size:20px;font-weight:700;color:#1565C0}
-    .badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.5px}
-    .ftr{background:#f8fafc;padding:16px 24px;border-top:1px solid #e2e8f0;text-align:center}
-    .ftr p{color:#94A3B8;font-size:11px}
-    @media print{body{background:#fff;padding:0}.receipt{box-shadow:none}}
-  </style>
+<meta charset="UTF-8">
+<title>Receipt - ${receiptId}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;background:#F5F7FB;padding:32px 20px}
+.page{max-width:680px;margin:0 auto}
+
+/* ── Header band ── */
+.hdr{background:linear-gradient(135deg,#1565C0,#42A5F5);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px}
+.logo-circle{width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1565C0;flex-shrink:0;letter-spacing:1px}
+.brand-name{color:#fff;font-size:20px;font-weight:800;letter-spacing:2px}
+.brand-sub{color:rgba(255,255,255,.75);font-size:11px;margin-top:2px}
+.rcpt-pill{margin-left:auto;background:#fff;border-radius:20px;padding:5px 13px;font-size:10px;font-weight:800;color:#1565C0;letter-spacing:1.2px;white-space:nowrap;flex-shrink:0}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:10px;border:0.6px solid #E0E6ED;padding:14px 16px;margin-top:14px}
+
+/* ── Meta row ── */
+.meta{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.meta-lbl{font-size:8px;color:#607D8B;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px}
+.meta-id{font-size:16px;color:#263238;font-weight:800;letter-spacing:1.5px}
+.meta-date{font-size:11px;color:#263238;font-weight:700}
+.status-badge{padding:5px 12px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:1.2px;white-space:nowrap}
+
+/* ── Two columns ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.block-title{font-size:9px;color:#1565C0;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px}
+.block-row{display:flex;gap:6px;margin-bottom:4px}
+.block-lbl{font-size:9px;color:#607D8B;width:52px;flex-shrink:0}
+.block-val{font-size:10px;color:#263238;font-weight:700;flex:1}
+
+/* ── Service table ── */
+.tbl{margin-top:14px;background:#fff;border-radius:10px;border:0.6px solid #E0E6ED;overflow:hidden}
+.tbl-hdr{background:#1565C0;padding:10px 14px;display:flex}
+.tbl-hdr span{font-size:9px;color:#fff;font-weight:800;letter-spacing:1.2px}
+.tbl-row{padding:12px 14px;display:flex;align-items:center}
+.tbl-svc{flex:4;font-size:11px;color:#263238;font-weight:700}
+.tbl-qty{flex:1;text-align:center;font-size:11px;color:#263238}
+.tbl-amt{flex:2;text-align:right;font-size:11px;color:#263238;font-weight:700}
+.tbl-hdr-svc{flex:4}
+.tbl-hdr-qty{flex:1;text-align:center}
+.tbl-hdr-amt{flex:2;text-align:right}
+
+/* ── Total ── */
+.total-wrap{display:flex;justify-content:flex-end;margin-top:14px}
+.total-badge{background:linear-gradient(135deg,#1565C0,#42A5F5);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:24px}
+.total-lbl{color:#fff;font-size:10px;font-weight:800;letter-spacing:1.5px}
+.total-price{color:#fff;font-size:16px;font-weight:800}
+
+/* ── QR + Notes ── */
+.bottom{display:grid;grid-template-columns:1fr auto;gap:14px;margin-top:14px;align-items:start}
+.notes-title{font-size:9px;color:#1565C0;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px}
+.bullet{display:flex;gap:6px;margin-bottom:4px;align-items:flex-start}
+.bullet-dot{width:4px;height:4px;border-radius:50%;background:#1565C0;flex-shrink:0;margin-top:4px}
+.bullet-text{font-size:8px;color:#607D8B;line-height:1.4}
+.qr-card{background:#fff;border-radius:10px;border:0.6px solid #E0E6ED;padding:10px;text-align:center;flex-shrink:0}
+.qr-card img{width:88px;height:88px;display:block}
+.qr-label{font-size:8px;color:#607D8B;margin-top:6px}
+
+/* ── Footer ── */
+.divider{height:0.6px;background:#E0E6ED;margin:18px 0 14px}
+.footer-title{text-align:center;font-size:11px;color:#1565C0;font-weight:800;letter-spacing:0.6px}
+.footer-sub{text-align:center;font-size:9px;color:#607D8B;margin-top:4px}
+
+@media print{
+  body{background:#fff;padding:0}
+  .page{max-width:100%}
+}
+</style>
 </head>
 <body>
-<div class="receipt">
+<div class="page">
+
+  <!-- Header band -->
   <div class="hdr">
-    <h1>Mera Partners</h1>
-    <p>Customer Receipt</p>
-    <div class="rid"><span>${receiptId}</span></div>
-  </div>
-  <div class="body">
-    <div class="row"><span class="lbl">Customer</span><span class="val">${s.name}</span></div>
-    <div class="row"><span class="lbl">Mobile</span><span class="val">+91 ${s.mobile}</span></div>
-    ${s.email ? `<div class="row"><span class="lbl">Email</span><span class="val">${s.email}</span></div>` : ''}
-    <div class="row"><span class="lbl">Service</span><span class="val">${s.service}</span></div>
-    <div class="row"><span class="lbl">Amount</span><span class="val price">&#8377;${s.price.toLocaleString('en-IN')}</span></div>
-    ${s.commission > 0 ? `<div class="row"><span class="lbl">Commission</span><span class="val" style="color:#16A34A">+&#8377;${s.commission.toLocaleString('en-IN')}</span></div>` : ''}
-    <div class="row">
-      <span class="lbl">Status</span>
-      <span class="val"><span class="badge" style="background:${statusHex}22;color:${statusHex}">${s.status.toUpperCase()}</span></span>
+    <div class="logo-circle">MP</div>
+    <div>
+      <div class="brand-name">MERA PARTNERS</div>
+      <div class="brand-sub">Grow Together</div>
     </div>
-    <div class="row"><span class="lbl">Date</span><span class="val">${dateStr}</span></div>
-    ${partnerName ? `<div class="row"><span class="lbl">Partner</span><span class="val">${partnerName}${partnerMobile ? ' &middot; ' + partnerMobile : ''}</span></div>` : ''}
+    <div class="rcpt-pill">CUSTOMER RECEIPT</div>
   </div>
-  <div class="ftr">
-    <p>Thank you for your business!</p>
-    <p style="margin-top:4px">This is a computer-generated receipt.</p>
+
+  <!-- Receipt meta -->
+  <div class="card">
+    <div class="meta">
+      <div>
+        <div class="meta-lbl">RECEIPT NO.</div>
+        <div class="meta-id">${receiptId}</div>
+      </div>
+      <div style="text-align:center">
+        <div class="meta-lbl">ISSUED ON</div>
+        <div class="meta-date">${dateStr}</div>
+      </div>
+      <div class="status-badge" style="background:${statusBg};color:${statusClr};border:0.8px solid ${statusClr}">${statusLbl}</div>
+    </div>
   </div>
+
+  <!-- Bill To + Partner -->
+  <div class="two-col">
+    <div class="card">
+      <div class="block-title">BILL TO</div>
+      <div class="block-row"><span class="block-lbl">Name</span><span class="block-val">${s.name}</span></div>
+      <div class="block-row"><span class="block-lbl">Mobile</span><span class="block-val">+91 ${s.mobile}</span></div>
+      <div class="block-row"><span class="block-lbl">Email</span><span class="block-val">${s.email || '-'}</span></div>
+    </div>
+    <div class="card">
+      <div class="block-title">PARTNER</div>
+      <div class="block-row"><span class="block-lbl">Name</span><span class="block-val">${partnerName || 'Partner'}</span></div>
+      ${partnerMobile ? `<div class="block-row"><span class="block-lbl">Mobile</span><span class="block-val">${partnerMobile}</span></div>` : ''}
+      <div class="block-row"><span class="block-lbl">Brand</span><span class="block-val">Mera Partners</span></div>
+    </div>
+  </div>
+
+  <!-- Service table -->
+  <div class="tbl">
+    <div class="tbl-hdr">
+      <span class="tbl-hdr-svc">SERVICE / DESCRIPTION</span>
+      <span class="tbl-hdr-qty">QTY</span>
+      <span class="tbl-hdr-amt">AMOUNT</span>
+    </div>
+    <div class="tbl-row">
+      <span class="tbl-svc">${s.service}</span>
+      <span class="tbl-qty">1</span>
+      <span class="tbl-amt">${priceStr}</span>
+    </div>
+  </div>
+
+  <!-- Total -->
+  <div class="total-wrap">
+    <div class="total-badge">
+      <span class="total-lbl">TOTAL</span>
+      <span class="total-price">${priceStr}</span>
+    </div>
+  </div>
+
+  <!-- QR + Terms -->
+  <div class="bottom">
+    <div class="card">
+      <div class="notes-title">TERMS &amp; NOTES</div>
+      <div class="bullet"><div class="bullet-dot"></div><div class="bullet-text">This is a system-generated receipt and does not require a physical signature.</div></div>
+      <div class="bullet"><div class="bullet-dot"></div><div class="bullet-text">For support contact your partner or write to support@merapartners.app.</div></div>
+      <div class="bullet"><div class="bullet-dot"></div><div class="bullet-text">Keep this receipt for future reference.</div></div>
+    </div>
+    <div class="qr-card">
+      <img src="${qrUrl}" alt="QR" />
+      <div class="qr-label">Scan to verify</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="divider"></div>
+  <div class="footer-title">Thank you for choosing Mera Partners</div>
+  <div class="footer-sub">www.merapartners.app &nbsp;|&nbsp; support@merapartners.app</div>
+
 </div>
 <script>window.onload=function(){window.print()}<\/script>
 </body></html>`
