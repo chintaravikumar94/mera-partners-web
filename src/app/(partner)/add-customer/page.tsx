@@ -283,7 +283,7 @@ export default function AddCustomerPage() {
       errs.quantity = 'Please enter a valid quantity'
     if (selectedSvc?.serviceType === 'commission' && selectedSvc.commissionType === 'percent' && !(parseFloat(projectValue) > 0))
       errs.projectValue = 'Please enter the project value'
-    if (selectedSvc?.requiresPayment && !paymentFile)
+    if (selectedSvc?.requiresPayment && svcType !== 'sku' && !paymentFile)
       errs.payment = 'Please upload payment screenshot'
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -643,7 +643,7 @@ export default function AddCustomerPage() {
           )}
 
           {/* ── Payment Screenshot ── */}
-          {selectedSvc?.requiresPayment && (
+          {selectedSvc?.requiresPayment && svcType !== 'sku' && (
             <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-card space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <svg width="14" height="14" fill="none" stroke="#1565C0" strokeWidth="2" viewBox="0 0 24 24">

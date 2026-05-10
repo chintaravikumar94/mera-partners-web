@@ -96,11 +96,14 @@ export default function EarningsPage() {
   const services = Object.values(byService).sort((a,b)=>b.commission-a.commission)
   const maxComm  = services[0]?.commission || 1
 
-  const typeLabel = (t: string) => {
-    if (t==='sku') return 'Retail − Wholesale = Profit/sale'
-    if (t==='per_unit') return 'Commission per unit'
-    if (t==='commission') return 'Commission per deal'
-    return 'Commission per project'
+  const typeLabel = (s: SvcAgg) => {
+    if (s.type === 'sku')
+      return `Retail ${money(s.retailUnit)} − Wholesale ${money(s.wholesaleUnit)} = Profit/sale`
+    if (s.type === 'per_unit')
+      return `Commission per unit: ${money(s.retailUnit)}`
+    if (s.type === 'commission')
+      return `Commission per deal: ${money(s.retailUnit)}`
+    return `Commission per project: ${money(s.retailUnit)}`
   }
 
   return (
@@ -196,7 +199,7 @@ export default function EarningsPage() {
                   <div className="h-1.5 bg-brand-bg rounded-full overflow-hidden">
                     <div className="h-full rounded-full" style={{ width:`${ratio*100}%`, background:`linear-gradient(90deg,${color}90,${color})` }}/>
                   </div>
-                  <p className="text-brand-sub text-[10px] mt-1">{typeLabel(s.type)}</p>
+                  <p className="text-brand-sub text-[10px] mt-1">{typeLabel(s)}</p>
                 </div>
               )
             })}
